@@ -156,6 +156,14 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      * @param maxPendingTasks   the maximum number of pending tasks before new tasks will be rejected.
      * @param rejectedHandler   the {@link RejectedExecutionHandler} to use.
      */
+    /**
+     * executor 来源见 {@link MultithreadEventExecutorGroup#MultithreadEventExecutorGroup(int, Executor, EventExecutorChooserFactory, Object...)}
+     * @param parent
+     * @param executor
+     * @param addTaskWakesUp
+     * @param maxPendingTasks
+     * @param rejectedHandler
+     */
     protected SingleThreadEventExecutor(EventExecutorGroup parent, Executor executor,
                                         boolean addTaskWakesUp, int maxPendingTasks,
                                         RejectedExecutionHandler rejectedHandler) {
@@ -747,6 +755,14 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         return isTerminated();
     }
 
+    /**
+     * 有待任务的任务提交进入时，如果操作提交任务动作的线程不是当前 {@link NioEventLoop} 实例对象 关联的具体线程，
+     * 则会判断是否需要初始化: 启动一个线程运行 {@link NioEventLoop#run()}
+     *
+     *
+     * 提交的任务都在 运行{@link NioEventLoop#run()} 的独立唯一一个线程处理
+     * @param task
+     */
     @Override
     public void execute(Runnable task) {
         if (task == null) {
@@ -890,6 +906,13 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         return false;
     }
 
+    /**
+     * 一个{@link NioEventLoop} 实例对象 对应 单独一个线程
+     *
+     * 调用 SingleThreadEventExecutor.this.run(); 后 {@link NioEventLoop#run()} 就会一直循环处理事件
+     *
+     * thread = Thread.currentThread(); 标示当前 {@link NioEventLoop} 实例对象 关联的具体线程 {@link #thread}
+     */
     private void doStartThread() {
         assert thread == null;
         executor.execute(new Runnable() {

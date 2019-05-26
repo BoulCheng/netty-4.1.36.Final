@@ -66,6 +66,14 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
      * @param chooserFactory    the {@link EventExecutorChooserFactory} to use.
      * @param args              arguments which will passed to each {@link #newChild(Executor, Object...)} call
      */
+    /**
+     * executor 为null 则创建一个{@link ThreadPerTaskExecutor} 实例对象并赋值
+     * 创建一个大小为 nThreads 的 {@link EventExecutor} 数组，每个元素都是一个  {@link NioEventLoop} 实例对象
+     * @param nThreads
+     * @param executor
+     * @param chooserFactory
+     * @param args
+     */
     protected MultithreadEventExecutorGroup(int nThreads, Executor executor,
                                             EventExecutorChooserFactory chooserFactory, Object... args) {
         if (nThreads <= 0) {
