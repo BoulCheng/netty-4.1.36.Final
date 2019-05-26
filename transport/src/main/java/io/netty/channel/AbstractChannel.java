@@ -79,6 +79,10 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
      * @param parent
      *        the parent of this channel. {@code null} if there's no parent.
      */
+    /**
+     * 为每个 {@link Channel} (连接) 创建一个 {@link DefaultChannelPipeline}
+     * @param parent
+     */
     protected AbstractChannel(Channel parent) {
         this.parent = parent;
         id = newId();

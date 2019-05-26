@@ -64,6 +64,9 @@ public class DefaultChannelConfig implements ChannelConfig {
     @SuppressWarnings("FieldMayBeFinal")
     private volatile int autoRead = 1;
     private volatile boolean autoClose = true;
+    /**
+     * 创建DefaultChannelConfig实例对象时设置默认的 WriteBufferWaterMark
+     */
     private volatile WriteBufferWaterMark writeBufferWaterMark = WriteBufferWaterMark.DEFAULT;
     private volatile boolean pinEventExecutor = true;
 
