@@ -27,6 +27,7 @@ import io.netty.channel.EventLoop;
 import io.netty.channel.FileRegion;
 import io.netty.channel.RecvByteBufAllocator;
 import io.netty.channel.nio.AbstractNioByteChannel;
+import io.netty.channel.nio.NioEventLoop;
 import io.netty.channel.socket.DefaultSocketChannelConfig;
 import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannelConfig;
@@ -102,6 +103,8 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
      */
     /**
      * 当指定使用 {@link NioServerSocketChannel}时 建立连接时会创建一个新 NioSocketChannel 实例
+     *
+     * {@link NioEventLoop#run()} 处理事件 触发
      * @param parent
      * @param socket
      */
