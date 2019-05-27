@@ -15,12 +15,9 @@
  */
 package io.netty.channel.nio;
 
+import io.netty.channel.*;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelException;
-import io.netty.channel.EventLoop;
-import io.netty.channel.EventLoopException;
-import io.netty.channel.SelectStrategy;
-import io.netty.channel.SingleThreadEventLoop;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.IntSupplier;
 import io.netty.util.concurrent.EventExecutorChooserFactory;
 import io.netty.util.concurrent.MultithreadEventExecutorGroup;
@@ -33,19 +30,12 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.channels.CancelledKeyException;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.Selector;
-import java.nio.channels.SelectionKey;
+import java.nio.channels.*;
 
 import java.nio.channels.spi.SelectorProvider;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -691,6 +681,38 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
             // Also check for readOps of 0 to workaround possible JDK bug which may otherwise lead
             // to a spin loop
+            /**
+             * {@link SelectionKey.OP_ACCEPT} - 建立连接
+             * {@link unsafe} -> {@link AbstractNioMessageChannel.NioMessageUnsafe#read()} ->
+             * {@link io.netty.channel.socket.nio.NioServerSocketChannel#doReadMessages(List)} ->
+             * {@link NioSocketChannel#NioSocketChannel(Channel, SocketChannel)} ->
+             * {@link DefaultChannelPipeline#fireChannelRead(Object)} ->
+             * {@link DefaultChannelPipeline.HeadContext#channelRead(ChannelHandlerContext, Object)} ->
+             * {@link io.netty.bootstrap.ServerBootstrap.ServerBootstrapAcceptor#channelRead(ChannelHandlerContext, Object)} ->
+             * {@link AbstractChannel.AbstractUnsafe#register(EventLoop, ChannelPromise)}
+             *
+             * register:465, AbstractChannel$AbstractUnsafe (io.netty.channel)
+             * register:80, SingleThreadEventLoop (io.netty.channel)
+             * register:74, SingleThreadEventLoop (io.netty.channel)
+             * register:86, MultithreadEventLoopGroup (io.netty.channel)
+             * channelRead:255, ServerBootstrap$ServerBootstrapAcceptor (io.netty.bootstrap)
+             * invokeChannelRead:374, AbstractChannelHandlerContext (io.netty.channel)
+             * invokeChannelRead:360, AbstractChannelHandlerContext (io.netty.channel)
+             * fireChannelRead:352, AbstractChannelHandlerContext (io.netty.channel)
+             * channelRead:1408, DefaultChannelPipeline$HeadContext (io.netty.channel)
+             * invokeChannelRead:374, AbstractChannelHandlerContext (io.netty.channel)
+             * invokeChannelRead:360, AbstractChannelHandlerContext (io.netty.channel)
+             * fireChannelRead:930, DefaultChannelPipeline (io.netty.channel)
+             * read:93, AbstractNioMessageChannel$NioMessageUnsafe (io.netty.channel.nio)
+             * processSelectedKey:682, NioEventLoop (io.netty.channel.nio)
+             * processSelectedKeysOptimized:617, NioEventLoop (io.netty.channel.nio)
+             * processSelectedKeys:534, NioEventLoop (io.netty.channel.nio)
+             * run:496, NioEventLoop (io.netty.channel.nio)
+             * run:906, SingleThreadEventExecutor$5 (io.netty.util.concurrent)
+             * run:74, ThreadExecutorMap$2 (io.netty.util.internal)
+             * run:30, FastThreadLocalRunnable (io.netty.util.concurrent)
+             * run:748, Thread (java.lang)
+             */
             if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
                 unsafe.read();
             }

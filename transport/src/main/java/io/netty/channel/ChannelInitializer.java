@@ -102,6 +102,11 @@ public abstract class ChannelInitializer<C extends Channel> extends ChannelInbou
     /**
      * {@inheritDoc} If override this method ensure you call super!
      */
+    /**
+     * {@link AbstractChannel.AbstractUnsafe#register(EventLoop, ChannelPromise)}
+     * @param ctx
+     * @throws Exception
+     */
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         if (ctx.channel().isRegistered()) {
@@ -132,6 +137,7 @@ public abstract class ChannelInitializer<C extends Channel> extends ChannelInbou
                 // We do so to prevent multiple calls to initChannel(...).
                 exceptionCaught(ctx, cause);
             } finally {
+                //移除 ChannelInitializer 实例 本身
                 ChannelPipeline pipeline = ctx.pipeline();
                 if (pipeline.context(this) != null) {
                     pipeline.remove(this);

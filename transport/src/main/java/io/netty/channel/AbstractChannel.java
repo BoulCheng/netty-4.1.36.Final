@@ -479,6 +479,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
 
+            //为新建立的连接绑定一个 eventLoop
             AbstractChannel.this.eventLoop = eventLoop;
 
             if (eventLoop.inEventLoop()) {
@@ -512,10 +513,17 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 boolean firstRegistration = neverRegistered;
                 doRegister();
                 neverRegistered = false;
+                /**
+                 * {@link AbstractChannel#registered}
+                 */
                 registered = true;
 
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
+
+                /**
+                 * 通过{@link DefaultChannelPipeline.PendingHandlerAddedTask#execute()} 回调 {@link ChannelHandler#handlerAdded(ChannelHandlerContext)} 方法
+                 */
                 pipeline.invokeHandlerAddedIfNeeded();
 
                 safeSetSuccess(promise);

@@ -89,6 +89,14 @@ public class DefaultChannelPipeline implements ChannelPipeline {
      */
     private boolean registered;
 
+    /**
+     * {@link TailContext}  {@link HeadContext} 是特殊的 {@link AbstractChannelHandlerContext} 实现类
+     *
+     *
+     * 而其他 {@link ChannelHandler} 通过 {@link #addLast(ChannelHandler)} 添加到 {@link DefaultChannelPipeline} 都是实例化一个 {@link DefaultChannelHandlerContext} 对象 并插入到 {@link #tail} 前面
+     * {@link #addLast0(AbstractChannelHandlerContext)}
+     * @param channel
+     */
     protected DefaultChannelPipeline(Channel channel) {
         this.channel = ObjectUtil.checkNotNull(channel, "channel");
         succeededFuture = new SucceededChannelFuture(channel, null);
@@ -116,6 +124,13 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return touch ? ReferenceCountUtil.touch(msg, next) : msg;
     }
 
+    /**
+     * {@link DefaultChannelHandlerContext}
+     * @param group
+     * @param name
+     * @param handler
+     * @return
+     */
     private AbstractChannelHandlerContext newContext(EventExecutorGroup group, String name, ChannelHandler handler) {
         return new DefaultChannelHandlerContext(this, childExecutor(group), name, handler);
     }
@@ -1105,6 +1120,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
+    /**
+     * 设置{@link #registered}
+     */
     private void callHandlerAddedForAllHandlers() {
         final PendingHandlerCallback pendingHandlerCallbackHead;
         synchronized (this) {
@@ -1443,6 +1461,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         abstract void execute();
     }
 
+    /**
+     * 回调 {@link ChannelHandler#handlerAdded(ChannelHandlerContext)} 方法
+     */
     private final class PendingHandlerAddedTask extends PendingHandlerCallback {
 
         PendingHandlerAddedTask(AbstractChannelHandlerContext ctx) {

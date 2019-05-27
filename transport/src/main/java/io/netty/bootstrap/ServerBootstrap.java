@@ -15,19 +15,12 @@
  */
 package io.netty.bootstrap;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelConfig;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ServerChannel;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoop;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
+import io.netty.util.concurrent.MultithreadEventExecutorGroup;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
@@ -238,6 +231,27 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             };
         }
 
+        /**
+         * 为新建立的连接 如{@link NioSocketChannel} 设置 {@link ServerBootstrap}的预配置
+         * {@link ServerBootstrap#childAttr(AttributeKey, Object)} {@link ServerBootstrap#childHandler(ChannelHandler)} {@link ServerBootstrap#childOption(ChannelOption, Object)} 的配置项
+         *
+         * 并使用 {@link ServerBootstrap#group(EventLoopGroup, EventLoopGroup)} 配置的 {@link ServerBootstrap#childGroup} {@link NioEventLoopGroup} 中选择一个{@link NioEventLoop}实例对象
+         * 实际是从 {@link NioEventLoopGroup} 的超类型 {@link MultithreadEventExecutorGroup#children} 数组变量中取一个{@link NioEventLoop}实例对象
+         *
+         * 然后在该新建连接的 {@link AbstractChannel.AbstractUnsafe#register(EventLoop, ChannelPromise)} 方法中 绑定选出的{@link NioEventLoop}实例对象到该新建的连接
+         * 并在该连接绑定的{@link NioEventLoop}线程中执行 {@link AbstractChannel.AbstractUnsafe#register0(ChannelPromise)}} 方法处理连接的后续操作
+         *
+         * register:465, AbstractChannel$AbstractUnsafe (io.netty.channel)
+         * register:80, SingleThreadEventLoop (io.netty.channel)
+         * register:74, SingleThreadEventLoop (io.netty.channel)
+         * register:86, MultithreadEventLoopGroup (io.netty.channel)
+         *
+         * 设置 {@link ServerBootstrap#childHandler(ChannelHandler)}的预配置时 如果{@link DefaultChannelPipeline#registered} 为false 即该连接还未被注册
+         * 那么会调用 {@link DefaultChannelPipeline#callHandlerCallbackLater(AbstractChannelHandlerContext, boolean)}
+         * 新增一个{@link DefaultChannelPipeline.PendingHandlerAddedTask} 实例添加到 {@link DefaultChannelPipeline#pendingHandlerCallbackHead} 单向链表
+         * 在{@link AbstractChannel.AbstractUnsafe#register(EventLoop, ChannelPromise)}方法 继续向下执行并通过{@link DefaultChannelPipeline.PendingHandlerAddedTask#execute()} 回调 {@link ChannelHandler#handlerAdded(ChannelHandlerContext)} 方法
+         * 从而在 {@link ChannelInitializer#handlerAdded(ChannelHandlerContext)} 中触发 {@link ChannelInitializer#initChannel(ChannelHandlerContext)} -> 触发 {@link ChannelInitializer#initChannel(Channel)}
+         */
         @Override
         @SuppressWarnings("unchecked")
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
