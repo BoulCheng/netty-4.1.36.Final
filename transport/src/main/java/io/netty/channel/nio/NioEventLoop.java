@@ -713,6 +713,35 @@ public final class NioEventLoop extends SingleThreadEventLoop {
              * run:30, FastThreadLocalRunnable (io.netty.util.concurrent)
              * run:748, Thread (java.lang)
              */
+
+
+            /**
+             *
+             * {@link SelectionKey.OP_READ} - 读操作
+             * {@link unsafe -> {@link AbstractChannel#unsafe} -> {@link NioSocketChannel#newUnsafe()}
+             * {@link unsafe} -> {@link AbstractNioByteChannel.NioByteUnsafe#read()} ->
+             * {@link DefaultChannelPipeline#fireChannelRead(Object)} ->
+             * {@link DefaultChannelPipeline.HeadContext#channelRead(ChannelHandlerContext, Object)} ->
+             * 具体业务ChannelInboundHandler实现类 {@link ChannelInboundHandler#channelRead(ChannelHandlerContext, Object)}
+             *
+             * channelRead:37, EchoServerHandler (nia.chapter2.echoserver)
+             * invokeChannelRead:374, AbstractChannelHandlerContext (io.netty.channel)
+             * invokeChannelRead:360, AbstractChannelHandlerContext (io.netty.channel)
+             * fireChannelRead:352, AbstractChannelHandlerContext (io.netty.channel)
+             * channelRead:1408, DefaultChannelPipeline$HeadContext (io.netty.channel)
+             * invokeChannelRead:374, AbstractChannelHandlerContext (io.netty.channel)
+             * invokeChannelRead:360, AbstractChannelHandlerContext (io.netty.channel)
+             * fireChannelRead:930, DefaultChannelPipeline (io.netty.channel)
+             * read:163, AbstractNioByteChannel$NioByteUnsafe (io.netty.channel.nio)
+             * processSelectedKey:682, NioEventLoop (io.netty.channel.nio)
+             * processSelectedKeysOptimized:617, NioEventLoop (io.netty.channel.nio)
+             * processSelectedKeys:534, NioEventLoop (io.netty.channel.nio)
+             * run:496, NioEventLoop (io.netty.channel.nio)
+             * run:906, SingleThreadEventExecutor$5 (io.netty.util.concurrent)
+             * run:74, ThreadExecutorMap$2 (io.netty.util.internal)
+             * run:30, FastThreadLocalRunnable (io.netty.util.concurrent)
+             * run:748, Thread (java.lang)
+             */
             if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
                 unsafe.read();
             }

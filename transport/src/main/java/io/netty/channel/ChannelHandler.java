@@ -180,6 +180,12 @@ public interface ChannelHandler {
     /**
      * Gets called after the {@link ChannelHandler} was added to the actual context and it's ready to handle events.
      */
+    /**
+     * ChannelHandler 被添加到 ChannelHandlerContext
+     * ChannelHandlerContext 被添加到 DefaultChannelPipeline 双向链表中
+     * @param ctx
+     * @throws Exception
+     */
     void handlerAdded(ChannelHandlerContext ctx) throws Exception;
 
     /**

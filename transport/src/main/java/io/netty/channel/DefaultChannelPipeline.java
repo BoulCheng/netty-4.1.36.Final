@@ -43,6 +43,11 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * The default {@link ChannelPipeline} implementation.  It is usually created
  * by a {@link Channel} implementation when the {@link Channel} is created.
  */
+
+/**
+ * ChannelHandler 被添加到 ChannelHandlerContext
+ * ChannelHandlerContext 被添加到 DefaultChannelPipeline 的AbstractChannelHandlerContext双向链表中
+ */
 public class DefaultChannelPipeline implements ChannelPipeline {
 
     static final InternalLogger logger = InternalLoggerFactory.getInstance(DefaultChannelPipeline.class);
@@ -210,6 +215,26 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return addLast(null, name, handler);
     }
 
+    /**
+     * {@link AbstractChannelHandlerContext#INIT} 及 {@link AbstractChannelHandlerContext#handlerState} 状态变更示例
+     *
+     * 1- AbstractChannel 未调用{@link AbstractChannel.AbstractUnsafe#register(EventLoop, ChannelPromise)} 即未完成注册
+     *      则先设置为{@link AbstractChannelHandlerContext#ADD_PENDING} 然后在 {@link DefaultChannelPipeline.PendingHandlerAddedTask} 调用 {@link #callHandlerAdded0} 更新为{@link AbstractChannelHandlerContext#ADD_COMPLETE}
+     *
+     * 2- AbstractChannel已经注册 && AbstractChannelHandlerContext 注册了独立的 executor
+     *      则先设置为{@link AbstractChannelHandlerContext#ADD_PENDING} 然后在 {@link AbstractChannelHandlerContext#executor} 调用 {@link #callHandlerAdded0} 更新为{@link AbstractChannelHandlerContext#ADD_COMPLETE}
+     *
+     * 3- AbstractChannel已经注册 && AbstractChannelHandlerContext 未注册独立的 executor 即使用 Channel 绑定的 EventLoop
+     *      直接调用 {@link #callHandlerAdded0} 更新为{@link AbstractChannelHandlerContext#ADD_COMPLETE}
+     *
+     *
+     * @param group    the {@link EventExecutorGroup} which will be used to execute the {@link ChannelHandler}
+     *                 methods
+     * @param name     the name of the handler to append
+     * @param handler  the handler to append
+     *
+     * @return
+     */
     @Override
     public final ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler) {
         final AbstractChannelHandlerContext newCtx;
@@ -1121,7 +1146,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     /**
-     * 设置{@link #registered}
+     * {@link AbstractChannel.AbstractUnsafe#register(EventLoop, ChannelPromise)}调用后 设置{@link #registered}
      */
     private void callHandlerAddedForAllHandlers() {
         final PendingHandlerCallback pendingHandlerCallbackHead;
@@ -1262,6 +1287,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         TailContext(DefaultChannelPipeline pipeline) {
             super(pipeline, null, TAIL_NAME, TailContext.class);
+            /**
+             * 直接更新为 {@link AbstractChannelHandlerContext#ADD_COMPLETE}
+             */
             setAddComplete();
         }
 
@@ -1326,6 +1354,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         HeadContext(DefaultChannelPipeline pipeline) {
             super(pipeline, null, HEAD_NAME, HeadContext.class);
             unsafe = pipeline.channel().unsafe();
+            /**
+             * 直接更新为 {@link AbstractChannelHandlerContext#ADD_COMPLETE}
+             */
             setAddComplete();
         }
 

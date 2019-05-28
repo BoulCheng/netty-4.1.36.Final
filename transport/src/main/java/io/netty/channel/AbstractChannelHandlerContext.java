@@ -22,6 +22,7 @@ import io.netty.util.Recycler;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ResourceLeakHint;
 import io.netty.util.concurrent.EventExecutor;
+import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.OrderedEventExecutor;
 import io.netty.util.internal.PromiseNotificationUtil;
 import io.netty.util.internal.ThrowableUtil;
@@ -355,6 +356,14 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
 
     static void invokeChannelRead(final AbstractChannelHandlerContext next, Object msg) {
         final Object m = next.pipeline.touch(ObjectUtil.checkNotNull(msg, "msg"), next);
+        /**
+         * {@link AbstractChannelHandlerContext#executor} 来源见
+         * {@link DefaultChannelHandlerContext#DefaultChannelHandlerContext(DefaultChannelPipeline, EventExecutor, String, ChannelHandler)} 为指定为null
+         * {@link DefaultChannelPipeline.TailContext} null
+         * {@link DefaultChannelPipeline.HeadContext} null
+         *
+         * 为null则取Channel 关联的 EventLoop
+         */
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
             next.invokeChannelRead(m);
@@ -369,6 +378,12 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     }
 
     private void invokeChannelRead(Object msg) {
+        /**
+         * true if {@link ChannelHandler#handlerAdded(ChannelHandlerContext)} was called.
+         * 即
+         * ChannelHandler 被添加到 ChannelHandlerContext
+         * ChannelHandlerContext 被添加到 DefaultChannelPipeline 双向链表中
+         */
         if (invokeHandler()) {
             try {
                 ((ChannelInboundHandler) handler()).channelRead(this, msg);
@@ -957,6 +972,10 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         assert updated; // This should always be true as it MUST be called before setAddComplete() or setRemoved().
     }
 
+    /**
+     * 更新为 {@link AbstractChannelHandlerContext#ADD_COMPLETE} before calling handlerAdded
+     * @throws Exception
+     */
     final void callHandlerAdded() throws Exception {
         // We must call setAddComplete before calling handlerAdded. Otherwise if the handlerAdded method generates
         // any pipeline events ctx.handler() will miss them because the state will not allow it.
@@ -984,6 +1003,10 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
      * If this method returns {@code false} we will not invoke the {@link ChannelHandler} but just forward the event.
      * This is needed as {@link DefaultChannelPipeline} may already put the {@link ChannelHandler} in the linked-list
      * but not called {@link ChannelHandler#handlerAdded(ChannelHandlerContext)}.
+     */
+    /**
+     * {@link DefaultChannelPipeline#addLast(EventExecutorGroup, String, ChannelHandler)} handlerState 状态变更描述
+     * @return
      */
     private boolean invokeHandler() {
         // Store in local variable to reduce volatile reads.
