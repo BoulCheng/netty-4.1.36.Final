@@ -15,6 +15,7 @@
  */
 package io.netty.channel;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel.Unsafe;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ResourceLeakDetector;
@@ -28,6 +29,7 @@ import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -125,6 +127,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return handle;
     }
 
+    // TODO: 2019/5/28
     final Object touch(Object msg, AbstractChannelHandlerContext next) {
         return touch ? ReferenceCountUtil.touch(msg, next) : msg;
     }
@@ -1409,11 +1412,29 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             unsafe.beginRead();
         }
 
+        /**
+         * 只是把数据添加到 ChannelOutboundBuffer 的待出站数据组成的单向链表中
+         * {@link ChannelOutboundBuffer#addMessage(Object, int, ChannelPromise)}
+         * {@link ChannelOutboundBuffer#tailEntry}
+         *
+         * write
+         * @param ctx               the {@link ChannelHandlerContext} for which the write operation is made
+         * @param msg               the message to write
+         * @param promise           the {@link ChannelPromise} to notify once the operation completes
+         */
         @Override
         public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
             unsafe.write(msg, promise);
         }
 
+        /**
+         * 真正的数据出站
+         * 在 {@link io.netty.channel.socket.nio.NioSocketChannel#doWrite(ChannelOutboundBuffer)}
+         * 调用 {@link sun.nio.ch.SocketChannelImpl#write(ByteBuffer[], int, int)}
+         * 数据出站 {@link ByteBuf} 自动释放
+         * flush
+         * @param ctx               the {@link ChannelHandlerContext} for which the flush operation is made
+         */
         @Override
         public void flush(ChannelHandlerContext ctx) {
             unsafe.flush();

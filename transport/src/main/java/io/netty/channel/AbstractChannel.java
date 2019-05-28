@@ -15,6 +15,7 @@
  */
 package io.netty.channel;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.socket.ChannelOutputShutdownEvent;
 import io.netty.channel.socket.ChannelOutputShutdownException;
@@ -32,6 +33,7 @@ import java.net.InetSocketAddress;
 import java.net.NoRouteToHostException;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.NotYetConnectedException;
 import java.util.concurrent.Executor;
@@ -304,6 +306,12 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         return pipeline.write(msg, promise);
     }
 
+    /**
+     * 从{@link DefaultChannelPipeline#tail} 开始到 {@link DefaultChannelPipeline#head}
+     * {@link AbstractChannelHandlerContext#findContextOutbound(int)}
+     * @param msg
+     * @return
+     */
     @Override
     public ChannelFuture writeAndFlush(Object msg) {
         return pipeline.writeAndFlush(msg);
@@ -431,6 +439,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
      */
     protected abstract class AbstractUnsafe implements Unsafe {
 
+        /**
+         * 每个Channel 连接都关联一个独立的 ChannelOutboundBuffer 实例对象
+         */
         private volatile ChannelOutboundBuffer outboundBuffer = new ChannelOutboundBuffer(AbstractChannel.this);
         private RecvByteBufAllocator.Handle recvHandle;
         private boolean inFlush0;
@@ -873,6 +884,15 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
         }
 
+        /**
+         *
+         * 只是把数据添加到 ChannelOutboundBuffer 的待出站数据组成的单向链表中
+         * {@link ChannelOutboundBuffer#addMessage(Object, int, ChannelPromise)}
+         * {@link ChannelOutboundBuffer#tailEntry}
+         *
+         * @param msg
+         * @param promise
+         */
         @Override
         public final void write(Object msg, ChannelPromise promise) {
             assertEventLoop();
@@ -905,6 +925,13 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             outboundBuffer.addMessage(msg, size, promise);
         }
 
+        /**
+         *
+         * 真正的数据出站
+         * 在 {@link io.netty.channel.socket.nio.NioSocketChannel#doWrite(ChannelOutboundBuffer)}
+         * 调用 {@link sun.nio.ch.SocketChannelImpl#write(ByteBuffer[], int, int)}
+         * 数据出站 {@link ByteBuf} 自动释放
+         */
         @Override
         public final void flush() {
             assertEventLoop();

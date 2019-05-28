@@ -49,6 +49,10 @@ import static java.lang.Math.min;
  * </ul>
  * </p>
  */
+
+/**
+ * (Transport implementors only) an internal data structure used by {@link AbstractChannel} to store its pending outbound write requests.
+ */
 public final class ChannelOutboundBuffer {
     // Assuming a 64-bit JVM:
     //  - 16 bytes object header
@@ -78,6 +82,7 @@ public final class ChannelOutboundBuffer {
     // The Entry which is the first unflushed in the linked-list structure
     private Entry unflushedEntry;
     // The Entry which represents the tail of the buffer
+    // 单向链表 消息体
     private Entry tailEntry;
     // The number of flushed entries that are not written yet
     private int flushed;
@@ -124,6 +129,10 @@ public final class ChannelOutboundBuffer {
 
         // increment pending bytes after adding message to the unflushed arrays.
         // See https://github.com/netty/netty/issues/1619
+
+        /**
+         * 判断是否超过 {@link WriteBufferWaterMark} 设置并更新 {@link ChannelOutboundBuffer#unwritable}
+         */
         incrementPendingOutboundBytes(entry.pendingSize, false);
     }
 
@@ -165,6 +174,9 @@ public final class ChannelOutboundBuffer {
         incrementPendingOutboundBytes(size, true);
     }
 
+    /**
+     * 判断是否超过 {@link WriteBufferWaterMark} 设置并更新 {@link ChannelOutboundBuffer#unwritable}
+     */
     private void incrementPendingOutboundBytes(long size, boolean invokeLater) {
         if (size == 0) {
             return;

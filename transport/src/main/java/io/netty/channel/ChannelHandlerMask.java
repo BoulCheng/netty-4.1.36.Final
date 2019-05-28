@@ -50,6 +50,9 @@ final class ChannelHandlerMask {
     static final int MASK_WRITE = 1 << 15;
     static final int MASK_FLUSH = 1 << 16;
 
+    /**
+     * 用 | 来相加所有的值
+     */
     private static final int MASK_ALL_INBOUND = MASK_EXCEPTION_CAUGHT | MASK_CHANNEL_REGISTERED |
             MASK_CHANNEL_UNREGISTERED | MASK_CHANNEL_ACTIVE | MASK_CHANNEL_INACTIVE | MASK_CHANNEL_READ |
             MASK_CHANNEL_READ_COMPLETE | MASK_USER_EVENT_TRIGGERED | MASK_CHANNEL_WRITABILITY_CHANGED;
@@ -81,6 +84,11 @@ final class ChannelHandlerMask {
 
     /**
      * Calculate the {@code executionMask}.
+     */
+    /**
+     * 用 &= ~ 来 减去 标注了{@link Skip}注解的方法对应的 mask 值
+     * @param handlerType
+     * @return
      */
     private static int mask0(Class<? extends ChannelHandler> handlerType) {
         int mask = MASK_EXCEPTION_CAUGHT;

@@ -726,6 +726,11 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
+    /**
+     * {@link DefaultChannelPipeline.HeadContext#write(ChannelHandlerContext, Object, ChannelPromise)}
+     * @param msg
+     * @param promise
+     */
     private void invokeWrite0(Object msg, ChannelPromise promise) {
         try {
             ((ChannelOutboundHandler) handler()).write(this, msg, promise);
@@ -759,6 +764,9 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
+    /**
+     * {@link DefaultChannelPipeline.HeadContext#flush(ChannelHandlerContext)}
+     */
     private void invokeFlush0() {
         try {
             ((ChannelOutboundHandler) handler()).flush(this);
@@ -782,6 +790,16 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
+    /**
+     * ctx.channel().writeAndFlush(msg); -> {@link AbstractChannel#writeAndFlush(Object)} 从{@link DefaultChannelPipeline#tail} 开始
+     *
+     * ctx.pipeline().writeAndFlush(msg); -> {@link DefaultChannelPipeline#writeAndFlush(Object)} 从{@link DefaultChannelPipeline#tail} 开始
+     *
+     * ctx.writeAndFlush(msg); -> {@link AbstractChannelHandlerContext#writeAndFlush(Object)} 从 下一个AbstractChannelHandlerContext开始 {@link AbstractChannelHandlerContext#findContextOutbound(int)}
+     * @param msg
+     * @param flush
+     * @param promise
+     */
     private void write(Object msg, boolean flush, ChannelPromise promise) {
         ObjectUtil.checkNotNull(msg, "msg");
         try {
@@ -935,6 +953,13 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         return ctx;
     }
 
+    /**
+     * 同时判断AbstractChannelHandlerContext是否包含该 mask
+     * {@link ChannelHandlerMask}
+     * {@link ChannelHandlerMask#mask(Class)}
+     * @param mask
+     * @return
+     */
     private AbstractChannelHandlerContext findContextOutbound(int mask) {
         AbstractChannelHandlerContext ctx = this;
         do {
