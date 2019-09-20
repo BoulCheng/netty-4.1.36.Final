@@ -421,6 +421,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
                         return;
                     }
                     adjustMaxBytesPerGatheringWrite(attemptedBytes, localWrittenBytes, maxBytesPerGatheringWrite);
+                    // TODO: 2019/9/5 0501pm 
                     in.removeBytes(localWrittenBytes);
                     --writeSpinCount;
                     break;

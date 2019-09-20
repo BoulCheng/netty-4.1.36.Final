@@ -436,6 +436,11 @@ public abstract class AbstractNioChannel extends AbstractChannel {
      * Note that this method does not create an off-heap copy if the allocation / deallocation cost is too high,
      * but just returns the original {@link ByteBuf}..
      */
+    /**
+     * 在通过套接字发送它之前，JVM将会在内部把你的堆缓冲区复制到一个直接缓冲区中 返回直接缓冲区
+     * @param buf
+     * @return
+     */
     protected final ByteBuf newDirectBuffer(ByteBuf buf) {
         final int readableBytes = buf.readableBytes();
         if (readableBytes == 0) {

@@ -17,6 +17,7 @@ package io.netty.channel;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.nio.AbstractNioChannel;
 import io.netty.channel.socket.ChannelOutputShutdownEvent;
 import io.netty.channel.socket.ChannelOutputShutdownException;
 import io.netty.util.DefaultAttributeMap;
@@ -307,6 +308,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     }
 
     /**
+     * 数据出站
      * 从{@link DefaultChannelPipeline#tail} 开始到 {@link DefaultChannelPipeline#head}
      * {@link AbstractChannelHandlerContext#findContextOutbound(int)}
      * @param msg
@@ -514,6 +516,17 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
         }
 
+        /**
+         * todo Channel 注册
+         *
+         * 触发
+         *
+         * {@link ChannelHandler#handlerAdded(ChannelHandlerContext)}
+         * {@link ChannelInboundHandler#channelRegistered(ChannelHandlerContext)} )}
+         * {@link ChannelInboundHandler#channelActive(ChannelHandlerContext)} (ChannelHandlerContext)}
+         *
+         * @param promise
+         */
         private void register0(ChannelPromise promise) {
             try {
                 // check if the channel is still open as it could be closed in the mean time when the register
@@ -522,6 +535,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     return;
                 }
                 boolean firstRegistration = neverRegistered;
+                // 调用子类 AbstractNioChannel 方法
                 doRegister();
                 neverRegistered = false;
                 /**
@@ -534,6 +548,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
                 /**
                  * 通过{@link DefaultChannelPipeline.PendingHandlerAddedTask#execute()} 回调 {@link ChannelHandler#handlerAdded(ChannelHandlerContext)} 方法
+                 *
                  */
                 pipeline.invokeHandlerAddedIfNeeded();
 
@@ -911,7 +926,14 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             int size;
             try {
+                /**
+                 * {@link io.netty.channel.nio.AbstractNioByteChannel#filterOutboundMessage(Object)}
+                 */
                 msg = filterOutboundMessage(msg);
+
+                /**
+                 * {@link DefaultMessageSizeEstimator.HandleImpl#size(Object)}
+                 */
                 size = pipeline.estimatorHandle().size(msg);
                 if (size < 0) {
                     size = 0;
@@ -942,6 +964,10 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
 
             outboundBuffer.addFlush();
+            // TODO: 2019/9/5 0327pm
+            /**
+             * {@link AbstractNioChannel.AbstractNioUnsafe#flush0()}
+             */
             flush0();
         }
 

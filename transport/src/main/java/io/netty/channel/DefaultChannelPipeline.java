@@ -267,6 +267,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return this;
     }
 
+    /**
+     * 增加 AbstractChannelHandlerContext 到 AbstractChannelHandlerContext链表的尾节点TailContext之前
+     * @param newCtx
+     */
     private void addLast0(AbstractChannelHandlerContext newCtx) {
         AbstractChannelHandlerContext prev = tail.prev;
         newCtx.prev = prev;
@@ -1285,6 +1289,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
+    /**
+     * 出站数据从最后一个 ChannelOutboundHandler 开始往前(HeadContext方向、AbstractChannelHandlerContext双向链表表头) 传递
+     */
     // A special catch-all handler that handles both bytes and messages.
     final class TailContext extends AbstractChannelHandlerContext implements ChannelInboundHandler {
 
@@ -1349,6 +1356,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
+    /**
+     * 入站数据从 HeadContext 开始向 AbstractChannelHandlerContext 双向链表表尾传递
+     */
     final class HeadContext extends AbstractChannelHandlerContext
             implements ChannelOutboundHandler, ChannelInboundHandler {
 

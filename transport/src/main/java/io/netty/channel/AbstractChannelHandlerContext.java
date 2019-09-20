@@ -54,6 +54,12 @@ import static io.netty.channel.ChannelHandlerMask.MASK_USER_EVENT_TRIGGERED;
 import static io.netty.channel.ChannelHandlerMask.MASK_WRITE;
 import static io.netty.channel.ChannelHandlerMask.mask;
 
+
+/**
+ * 子类 DefaultChannelHandlerContext 关联了 ChannelHandler 和 DefaultChannelPipeline
+ *
+ * HeadContext  TailContext 本身实现了 ChannelHandler 接口
+ */
 abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, ResourceLeakHint {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(AbstractChannelHandlerContext.class);
@@ -783,6 +789,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
 
     private void invokeWriteAndFlush(Object msg, ChannelPromise promise) {
         if (invokeHandler()) {
+            // 数据出站
             invokeWrite0(msg, promise);
             invokeFlush0();
         } else {
@@ -824,6 +831,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
                 next.invokeWrite(m, promise);
             }
         } else {
+            // 如果当前线程不是 EventLoop关联的线程， 那么放进任务队列等待 EventLoop关联的线程 后续执行，
             final AbstractWriteTask task;
             if (flush) {
                 task = WriteAndFlushTask.newInstance(next, m, promise);

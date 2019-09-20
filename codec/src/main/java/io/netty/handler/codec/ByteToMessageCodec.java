@@ -1,4 +1,4 @@
-/*
+  /*
  * Copyright 2012 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
@@ -34,7 +34,7 @@ import java.util.List;
 public abstract class ByteToMessageCodec<I> extends ChannelDuplexHandler {
 
     private final TypeParameterMatcher outboundMsgMatcher;
-    private final MessageToByteEncoder<I> encoder;
+    private final MessageToByteEncoder<I>  encoder;
 
     private final ByteToMessageDecoder decoder = new ByteToMessageDecoder() {
         @Override

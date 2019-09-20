@@ -53,6 +53,10 @@ import static java.lang.Math.min;
 /**
  * (Transport implementors only) an internal data structure used by {@link AbstractChannel} to store its pending outbound write requests.
  */
+
+/**
+ * 每个 NioSocketChannel 实例 对一个绑定一个单独的   private volatile ChannelOutboundBuffer outboundBuffer = new ChannelOutboundBuffer(AbstractChannel.this);
+ */
 public final class ChannelOutboundBuffer {
     // Assuming a 64-bit JVM:
     //  - 16 bytes object header
@@ -123,6 +127,7 @@ public final class ChannelOutboundBuffer {
             tail.next = entry;
         }
         tailEntry = entry;
+        // TODO: 2019/9/5 0304pm 
         if (unflushedEntry == null) {
             unflushedEntry = entry;
         }
@@ -326,6 +331,7 @@ public final class ChannelOutboundBuffer {
     }
 
     private void removeEntry(Entry e) {
+        // TODO: 2019/9/5 0501pm
         if (-- flushed == 0) {
             // processed everything
             flushedEntry = null;
@@ -359,6 +365,7 @@ public final class ChannelOutboundBuffer {
                     progress(readableBytes);
                     writtenBytes -= readableBytes;
                 }
+                // TODO: 2019/9/5 0501pm
                 remove();
             } else { // readableBytes > writtenBytes
                 if (writtenBytes != 0) {
@@ -614,6 +621,10 @@ public final class ChannelOutboundBuffer {
             final int newValue = oldValue | 1;
             if (UNWRITABLE_UPDATER.compareAndSet(this, oldValue, newValue)) {
                 if (oldValue == 0 && newValue != 0) {
+
+                    /**
+                     * 触发 {@link ChannelInboundHandler#channelWritabilityChanged(ChannelHandlerContext)} 方法
+                     */
                     fireChannelWritabilityChanged(invokeLater);
                 }
                 break;

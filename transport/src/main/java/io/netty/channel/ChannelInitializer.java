@@ -104,11 +104,13 @@ public abstract class ChannelInitializer<C extends Channel> extends ChannelInbou
      */
     /**
      * {@link AbstractChannel.AbstractUnsafe#register(EventLoop, ChannelPromise)}
+     * {@link DefaultChannelPipeline#invokeHandlerAddedIfNeeded()}
      * @param ctx
      * @throws Exception
      */
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        // TODO: 2019/9/3 1
         if (ctx.channel().isRegistered()) {
             // This should always be true with our current DefaultChannelPipeline implementation.
             // The good thing about calling initChannel(...) in handlerAdded(...) is that there will be no ordering

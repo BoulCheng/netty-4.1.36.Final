@@ -85,6 +85,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     private volatile Thread thread;
     @SuppressWarnings("unused")
     private volatile ThreadProperties threadProperties;
+    // TODO: 2019/6/27
     private final Executor executor;
     private volatile boolean interrupted;
 
@@ -759,6 +760,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      * 有待任务的任务提交进入时，如果操作提交任务动作的线程不是当前 {@link NioEventLoop} 实例对象 关联的具体线程，
      * 则会判断是否需要初始化: 启动一个线程运行 {@link NioEventLoop#run()}
      *
+     * 而只有当操作提交任务动作的线程不是当前 {@link NioEventLoop} 实例对象 关联的具体线程时才会放入任务队列交给 {@link NioEventLoop#run()} 处理
      *
      * 提交的任务都在 运行{@link NioEventLoop#run()} 的独立唯一一个线程处理
      * @param task

@@ -15,12 +15,7 @@
  */
 package io.netty.channel.nio;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelConfig;
-import io.netty.channel.ChannelOutboundBuffer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.RecvByteBufAllocator;
-import io.netty.channel.ServerChannel;
+import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.io.IOException;
@@ -96,6 +91,9 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                     readPending = false;
                     /**
                      * 建立连接时把{@link NioSocketChannel} 实例对象传入ChannelPipeline
+                     *
+                     * pipeline 是 NioServerSocketChannel 关联的 pipeline ， 因此会到达 {@link io.netty.bootstrap.ServerBootstrap.ServerBootstrapAcceptor#channelRead(ChannelHandlerContext, Object)}
+                     * NioSocketChannel会流过 NioServerSocketChannel的 pipeline 中 AbstractChannelHandlerContext 链表中关联的每一个 ChannelHandle，并在 ServerBootstrapAcceptor 中执行 NioSocketChannel 的注册 即调用方法{@link AbstractChannel.AbstractUnsafe#register(EventLoop, ChannelPromise)}
                      */
                     pipeline.fireChannelRead(readBuf.get(i));
                 }
