@@ -101,6 +101,7 @@ public abstract class AbstractScheduledEventExecutor extends AbstractEventExecut
     protected final Runnable pollScheduledTask(long nanoTime) {
         assert inEventLoop();
 
+        //心跳机制通过定时任务处理， 取出定时任务
         Queue<ScheduledFutureTask<?>> scheduledTaskQueue = this.scheduledTaskQueue;
         ScheduledFutureTask<?> scheduledTask = scheduledTaskQueue == null ? null : scheduledTaskQueue.peek();
         if (scheduledTask == null) {
@@ -108,6 +109,7 @@ public abstract class AbstractScheduledEventExecutor extends AbstractEventExecut
         }
 
         if (scheduledTask.deadlineNanos() <= nanoTime) {
+            // 判断是否需要触发执行
             scheduledTaskQueue.remove();
             return scheduledTask;
         }

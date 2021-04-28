@@ -118,6 +118,13 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
     private final SelectStrategy selectStrategy;
 
+    /**
+     * 表示此线程分配给 IO 操作所占的时间比(即运行 processSelectedKeys 耗时在整个循环中所占用的时间)
+     *
+     * ioRatio 默认是 50, 则表示 IO 操作和执行 task 的所占用的线程执行时间比是 1 : 1
+     *
+     * 当 ioRatio 为 100 时, Netty 就不考虑 IO 耗时的占比, 而是分别调用 processSelectedKeys()、runAllTasks()
+     */
     private volatile int ioRatio = 50;
     private int cancelledKeys;
     private boolean needsToSelectAgain;
@@ -424,6 +431,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     }
 
     /**
+     * EventLoop 需要负责两个工作, 第一个是作为 IO 线程, 负责相应的 IO 操作; 第二个是作为默认的任务线程, 执行 taskQueue 中的任务 比如心跳机制的定时任务 默认执行线程
+     * ioRatio 控制 IO操作 和 执行任务 的时间比
      * 处理事件
      */
     @Override
@@ -495,12 +504,17 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         runAllTasks();
                     }
                 } else {
+                    // ioRatio表示此线程分配给 IO 操作所占的时间比(即运行 processSelectedKeys 耗时在整个循环中所占用的时间)
                     final long ioStartTime = System.nanoTime();
                     try {
                         processSelectedKeys();
                     } finally {
                         // Ensure we always run tasks.
                         final long ioTime = System.nanoTime() - ioStartTime;
+                        /**
+                         *  处理任务 且有超时机制
+                         *  (100 - ioRatio) / ioRatio = taskTime / ioTime
+                         */
                         runAllTasks(ioTime * (100 - ioRatio) / ioRatio);
                     }
                 }

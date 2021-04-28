@@ -284,7 +284,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         long nanoTime = AbstractScheduledEventExecutor.nanoTime();
         Runnable scheduledTask  = pollScheduledTask(nanoTime);
         while (scheduledTask != null) {
-            if (!taskQueue.offer(scheduledTask)) {
+            if (!taskQueue.offer(scheduledTask)) { // 最多16个
                 // No space left in the task queue add it back to the scheduledTaskQueue so we pick it up again.
                 scheduledTaskQueue().add((ScheduledFutureTask<?>) scheduledTask);
                 return false;
@@ -400,6 +400,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      * the tasks in the task queue and returns if it ran longer than {@code timeoutNanos}.
      */
     protected boolean runAllTasks(long timeoutNanos) {
+        // 转移定时任务队列
         fetchFromScheduledTaskQueue();
         Runnable task = pollTask();
         if (task == null) {
@@ -411,13 +412,16 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         long runTasks = 0;
         long lastExecutionTime;
         for (;;) {
+            // 执行任务
             safeExecute(task);
 
             runTasks ++;
 
             // Check timeout every 64 tasks because nanoTime() is relatively expensive.
             // XXX: Hard-coded value - will make it configurable if it is really a problem.
+            // 每63个任务检查一次超时，因为System.nanoTime()调用相对昂贵。
             if ((runTasks & 0x3F) == 0) {
+                // 0011 1111 = 2^6 - 1 = 63
                 lastExecutionTime = ScheduledFutureTask.nanoTime();
                 if (lastExecutionTime >= deadline) {
                     break;

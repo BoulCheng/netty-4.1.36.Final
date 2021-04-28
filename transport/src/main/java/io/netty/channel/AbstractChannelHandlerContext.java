@@ -131,6 +131,8 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     @Override
     public EventExecutor executor() {
         if (executor == null) {
+            // 默认是 channel 注册的 EventLoop
+            // 即处理 channel IO事件的线程处理任务
             return channel().eventLoop();
         } else {
             return executor;

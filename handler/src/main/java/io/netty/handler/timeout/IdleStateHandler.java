@@ -318,6 +318,7 @@ public class IdleStateHandler extends ChannelDuplexHandler {
         state = 1;
         initOutputChanged(ctx);
 
+        // 开启定时任务
         lastReadTime = lastWriteTime = ticksInNanos();
         if (readerIdleTimeNanos > 0) {
             readerIdleTimeout = schedule(ctx, new ReaderIdleTimeoutTask(ctx),
@@ -486,6 +487,10 @@ public class IdleStateHandler extends ChannelDuplexHandler {
             super(ctx);
         }
 
+        /**
+         * 执行空闲检查
+         * @param ctx
+         */
         @Override
         protected void run(ChannelHandlerContext ctx) {
             long nextDelay = readerIdleTimeNanos;

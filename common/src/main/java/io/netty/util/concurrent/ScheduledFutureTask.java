@@ -143,6 +143,7 @@ final class ScheduledFutureTask<V> extends PromiseTask<V> implements ScheduledFu
                             Queue<ScheduledFutureTask<?>> scheduledTaskQueue =
                                     ((AbstractScheduledEventExecutor) executor()).scheduledTaskQueue;
                             assert scheduledTaskQueue != null;
+                            // 重新加入
                             scheduledTaskQueue.add(this);
                         }
                     }
