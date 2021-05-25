@@ -109,6 +109,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         succeededFuture = new SucceededChannelFuture(channel, null);
         voidPromise =  new VoidChannelPromise(channel, true);
 
+        /**
+         *
+         */
         tail = new TailContext(this);
         head = new HeadContext(this);
 
@@ -127,6 +130,12 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return handle;
     }
 
+    /**
+     *
+     * @param msg
+     * @param next
+     * @return
+     */
     // TODO: 2019/5/28
     final Object touch(Object msg, AbstractChannelHandlerContext next) {
         return touch ? ReferenceCountUtil.touch(msg, next) : msg;
@@ -270,6 +279,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     /**
+     *
      * 增加 AbstractChannelHandlerContext 到 AbstractChannelHandlerContext链表的尾节点TailContext之前
      * @param newCtx
      */
@@ -1347,6 +1357,11 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             onUnhandledInboundException(cause);
         }
 
+        /**
+         * 入站消息到达最后一个handler 调用 ReferenceCountUtil.release(msg); 维护引用计数
+         * @param ctx
+         * @param msg
+         */
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             onUnhandledInboundMessage(msg);
@@ -1436,6 +1451,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
          */
         @Override
         public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+            // 出站消息到达最前一个handler 继续调用会 会调用 ReferenceCountUtil.release(msg); 维护引用计数
             unsafe.write(msg, promise);
         }
 

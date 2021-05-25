@@ -920,6 +920,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 // See https://github.com/netty/netty/issues/2362
                 safeSetFailure(promise, newWriteException(initialCloseCause));
                 // release message now to prevent resource-leak
+                // 调用 ReferenceCountUtil.release(msg); 维护引用计数
                 ReferenceCountUtil.release(msg);
                 return;
             }
@@ -940,6 +941,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 }
             } catch (Throwable t) {
                 safeSetFailure(promise, t);
+                // 调用 ReferenceCountUtil.release(msg); 维护引用计数
                 ReferenceCountUtil.release(msg);
                 return;
             }

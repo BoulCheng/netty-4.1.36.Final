@@ -98,6 +98,17 @@ public class DefaultSocketChannelConfig extends DefaultChannelConfig
         return super.getOption(option);
     }
 
+    /**
+     *
+     * 通过Channel获取 ByteBufAllocator 默认 UnpooledByteBufAllocator
+     * @see PooledByteBufAllocator.DEFAULT
+     * .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+     *
+     * @param option
+     * @param value
+     * @param <T>
+     * @return
+     */
     @Override
     public <T> boolean setOption(ChannelOption<T> option, T value) {
         validate(option, value);
