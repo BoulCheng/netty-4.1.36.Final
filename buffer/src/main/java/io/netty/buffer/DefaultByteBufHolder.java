@@ -106,6 +106,11 @@ public class DefaultByteBufHolder implements ByteBufHolder {
         return this;
     }
 
+    /**
+     *
+     * @param hint
+     * @return
+     */
     @Override
     public ByteBufHolder touch(Object hint) {
         data.touch(hint);

@@ -24,6 +24,10 @@ import java.nio.ByteBuffer;
 /**
  * Simplistic {@link ByteBufAllocator} implementation that does not pool anything.
  */
+
+/**
+ *
+ */
 public final class UnpooledByteBufAllocator extends AbstractByteBufAllocator implements ByteBufAllocatorMetricProvider {
 
     private final UnpooledByteBufAllocatorMetric metric = new UnpooledByteBufAllocatorMetric();
