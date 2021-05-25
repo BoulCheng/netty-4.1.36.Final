@@ -893,6 +893,11 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     break;
                 }
 
+                /**
+                 * 对epoll空轮询的处理
+                 * jdk bug
+                 * @see Selector#select() 可能在无就绪事件时异常返回的bug
+                 */
                 long time = System.nanoTime();
                 if (time - TimeUnit.MILLISECONDS.toNanos(timeoutMillis) >= currentTimeNanos) {
                     // timeoutMillis elapsed without anything selected.
