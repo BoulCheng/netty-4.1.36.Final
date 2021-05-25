@@ -182,8 +182,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             checkMultiplicity(handler);
             name = filterName(name, handler);
 
+            // handler、ChannelPipeline包装转化为 DefaultChannelHandlerContext
             newCtx = newContext(group, name, handler);
 
+            // DefaultChannelHandlerContext 加入 ChannelPipeline，链表保存 DefaultChannelHandlerContext
             addFirst0(newCtx);
 
             // If the registered is false it means that the channel was not registered on an eventLoop yet.
