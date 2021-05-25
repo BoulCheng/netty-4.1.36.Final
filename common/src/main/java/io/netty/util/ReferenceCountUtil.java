@@ -22,6 +22,10 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 /**
  * Collection of method to handle objects that may implement {@link ReferenceCounted}.
  */
+
+/**
+ *
+ */
 public final class ReferenceCountUtil {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(ReferenceCountUtil.class);

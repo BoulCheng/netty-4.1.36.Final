@@ -29,6 +29,10 @@ package io.netty.util;
  * reference count becomes 0.
  * </p>
  */
+
+/**
+ *
+ */
 public interface ReferenceCounted {
     /**
      * Returns the reference count of this object.  If {@code 0}, it means this object has been deallocated.
